@@ -28,6 +28,7 @@ using Avalonia.Controls.Metadata;
 using Avalonia.Input.GestureRecognizers;
 using Avalonia.Styling;
 using Avalonia.Reactive;
+using System.Linq.Expressions;
 
 namespace Avalonia.Controls
 {
@@ -571,6 +572,27 @@ namespace Avalonia.Controls
             set { SetValue(DropLocationIndicatorTemplateProperty, value); }
         }
 
+        private string _selectedHeader = string.Empty;
+
+        public static readonly DirectProperty<DataGrid, string> SelectedHeaderProperty =
+            AvaloniaProperty.RegisterDirect<DataGrid, string>(
+                nameof(SelectedHeader),
+                o => o.SelectedHeader,
+                (o, v) => o.SelectedHeader = v,
+                defaultBindingMode: BindingMode.TwoWay);
+
+        /// <summary>
+        /// Gets or sets the group header name of current selection
+        /// </summary>
+        /// <returns>
+        /// name of group header
+        /// </returns>
+        public string SelectedHeader
+        {
+            get { return _selectedHeader; }
+            set { SetAndRaise(SelectedHeaderProperty, ref _selectedHeader, value); }
+        }
+
         private int _selectedIndex = -1;
         private object _selectedItem;
 
@@ -722,6 +744,7 @@ namespace Avalonia.Controls
             RowHeaderWidthProperty.Changed.AddClassHandler<DataGrid>((x, e) => x.OnRowHeaderWidthChanged(e));
             SelectionModeProperty.Changed.AddClassHandler<DataGrid>((x, e) => x.OnSelectionModeChanged(e));
             VerticalGridLinesBrushProperty.Changed.AddClassHandler<DataGrid>((x, e) => x.OnVerticalGridLinesBrushChanged(e));
+            SelectedHeaderProperty.Changed.AddClassHandler<DataGrid>((x, e) => x.OnSelectedHeaderChanged(e));
             SelectedIndexProperty.Changed.AddClassHandler<DataGrid>((x, e) => x.OnSelectedIndexChanged(e));
             SelectedItemProperty.Changed.AddClassHandler<DataGrid>((x, e) => x.OnSelectedItemChanged(e));
             IsEnabledProperty.Changed.AddClassHandler<DataGrid>((x, e) => x.DataGrid_IsEnabledChanged(e));
@@ -916,6 +939,16 @@ namespace Avalonia.Controls
             PseudoClasses.Set(":empty-columns", !ColumnsInternal.GetVisibleColumns().Any());
             PseudoClasses.Set(":empty-rows", !DataConnection.Any());
         }
+
+        private void OnSelectedHeaderChanged(AvaloniaPropertyChangedEventArgs e)
+        {
+            if (!_areHandlersSuspended)
+            {
+                string header = (string)e.NewValue;
+                ;
+            }
+        }
+
 
         private void OnSelectedIndexChanged(AvaloniaPropertyChangedEventArgs e)
         {
@@ -1290,6 +1323,8 @@ namespace Avalonia.Controls
             add { AddHandler(SelectionChangedEvent, value); }
             remove { RemoveHandler(SelectionChangedEvent, value); }
         }
+
+
 
         /// <summary>
         /// Occurs when the <see cref="DataGridColumn"/> sorting request is triggered.
@@ -2285,16 +2320,7 @@ namespace Avalonia.Controls
         /// <param name="e">PointerWheelEventArgs</param>
         protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
         {
-            var delta = e.Delta;
-            
-            // KeyModifiers.Shift should scroll in horizontal direction. This does not work on every platform. 
-            // If Shift-Key is pressed and X is close to 0 we swap the Vector.
-            if (e.KeyModifiers == KeyModifiers.Shift && MathUtilities.IsZero(delta.X))
-            {
-                delta = new Vector(delta.Y, delta.X);
-            }
-            
-            if(UpdateScroll(delta * DATAGRID_mouseWheelDelta))
+            if(UpdateScroll(e.Delta * DATAGRID_mouseWheelDelta))
             {
                 e.Handled = true;
             }
@@ -2567,12 +2593,29 @@ namespace Avalonia.Controls
             // Update the SelectedIndex
             int newIndex = -1;
 
+            string header = "";
+
             if (selectedItem != null)
             {
                 newIndex = DataConnection.IndexOf(selectedItem);
             }
+            else
+            {
+                if (RowGroupHeadersTable.Contains(CurrentSlot))
+                {
+                    var idxes = RowGroupHeadersTable.GetIndexes(CurrentSlot);
+                    foreach (var idx in idxes)
+                    {
+                        var t = RowGroupHeadersTable.GetValueAt(idx);
+                        string tmp = t.CollectionViewGroup.Key as string;
+                        header = tmp;
+                        break;
+                    }
+                }
+            }
 
             SetValueNoCallback(SelectedIndexProperty, newIndex);
+            SetValueNoCallback<string>(SelectedHeaderProperty, header);
         }
 
         internal static DataGridCell GetOwningCell(Control element)
@@ -3132,10 +3175,10 @@ namespace Avalonia.Controls
         }
 
         //TODO: Ensure right button is checked for
-        internal bool UpdateStateOnMouseRightButtonDown(PointerPressedEventArgs pointerPressedEventArgs, int columnIndex, int slot, bool allowEdit)
+        internal bool UpdateStateOnMouseRightButtonDown(PointerPressedEventArgs pointerPressedEventArgs, int columnIndex, int slot, bool allowEdit, string headerName)
         {
             KeyboardHelper.GetMetaKeyState(this, pointerPressedEventArgs.KeyModifiers, out bool ctrl, out bool shift);
-            return UpdateStateOnMouseRightButtonDown(pointerPressedEventArgs, columnIndex, slot, allowEdit, shift, ctrl);
+            return UpdateStateOnMouseRightButtonDown(pointerPressedEventArgs, columnIndex, slot, allowEdit, shift, ctrl, headerName);
         }
         //TODO: Ensure left button is checked for
         internal bool UpdateStateOnMouseLeftButtonDown(PointerPressedEventArgs pointerPressedEventArgs, int columnIndex, int slot, bool allowEdit)
@@ -5848,7 +5891,7 @@ namespace Avalonia.Controls
         }
 
         //TODO: Ensure right button is checked for
-        private bool UpdateStateOnMouseRightButtonDown(PointerPressedEventArgs pointerPressedEventArgs, int columnIndex, int slot, bool allowEdit, bool shift, bool ctrl)
+        private bool UpdateStateOnMouseRightButtonDown(PointerPressedEventArgs pointerPressedEventArgs, int columnIndex, int slot, bool allowEdit, bool shift, bool ctrl, string headerName)
         {
             Debug.Assert(slot >= 0);
 

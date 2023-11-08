@@ -315,7 +315,7 @@ namespace Avalonia.Controls
                 {
                     OwningGrid.Focus();
                 }
-                e.Handled = OwningGrid.UpdateStateOnMouseRightButtonDown(e, OwningGrid.CurrentColumnIndex, RowGroupInfo.Slot, allowEdit: false);
+                e.Handled = OwningGrid.UpdateStateOnMouseRightButtonDown(e, OwningGrid.CurrentColumnIndex, RowGroupInfo.Slot, allowEdit: false, PropertyName);
             }
 
         }

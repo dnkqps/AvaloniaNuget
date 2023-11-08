@@ -208,7 +208,7 @@ namespace Avalonia.Controls.Primitives
                 {
                     Debug.Assert(sender is DataGridRowHeader);
                     Debug.Assert(sender == this);
-                    e.Handled = OwningGrid.UpdateStateOnMouseRightButtonDown(e, -1, Slot, false);
+                    e.Handled = OwningGrid.UpdateStateOnMouseRightButtonDown(e, -1, Slot, false, string.Empty);
                 }
             }
         } 

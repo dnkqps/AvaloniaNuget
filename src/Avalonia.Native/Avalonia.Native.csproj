@@ -2,20 +2,10 @@
 
   <PropertyGroup>
     <PackAvaloniaNative Condition="'$(PackAvaloniaNative)' == ''">$([MSBuild]::IsOSPlatform(OSX))</PackAvaloniaNative>
-    <IsPackable>$(PackAvaloniaNative)</IsPackable>
-    <IsPackable Condition="'$([MSBuild]::IsOSPlatform(OSX))' == 'True'">true</IsPackable>
+    <IsPackable>true</IsPackable>
     <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-
-  <ItemGroup Condition="'$(PackAvaloniaNative)' == 'true'">
-    <Content Include="../../Build/Products/Release/libAvalonia.Native.OSX.dylib">
-      <Link>libAvaloniaNative.dylib</Link>
-      <PackagePath>runtimes/osx/native/libAvaloniaNative.dylib</PackagePath>
-      <Pack>true</Pack>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\packages\Avalonia\Avalonia.csproj" />
