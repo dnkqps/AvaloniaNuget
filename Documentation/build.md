@@ -2,11 +2,11 @@
 
 Avalonia requires at least Visual Studio 2022 and dotnet 7-rc2 SDK 7.0.100-rc.2 to build on all platforms.
 
-##  Clone the Avalonia repository
+##  Clone the AvaloniaNuget repository
 
 ```
-git clone https://github.com/AvaloniaUI/Avalonia.git
-cd Avalonia
+git clone --branch iqps_11_0_5 git@github.com:dnkqps/AvaloniaNuget.git
+cd AvaloniaNuget
 git submodule update --init
 ```
 
@@ -16,12 +16,25 @@ Go to https://dotnet.microsoft.com/download/visual-studio-sdks and install the l
 
 ### Installing necessary .NET Workloads
 
+NOTE: install using admin powershell!
+
 .NET SDK requires developers to install workloads for each platform they are targeting.
 Since Avalonia targets pretty much every supported .NET platform, you need to install these workloads as well. 
 Running it from the command line:
 ```
 dotnet workload install android ios wasm-tools wasm-experimental
 ```
+
+Also need to get Tizen workload:
+
+https://github.com/Samsung/Tizen.NET/wiki/Installing-Tizen-.NET-Workload#install-tizen-net-workload-2
+
+
+Also, may need to update to the latest npm: You may need to install nvm-windows:
+
+https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-windows
+
+
 
 macOS workloads are not required to build Avalonia.
 Note: on Unix OS you need to run this command from sudo.
@@ -65,6 +78,11 @@ Build and run `ControlCatalog.NetCore` project to see the sample application.
 
 Install Nuke
 `dotnet tool install --global Nuke.GlobalTool --version 6.2.1`
+
+NOTE: before building nuget follow:
+
+https://github.com/AvaloniaUI/Avalonia/discussions/6215#discussioncomment-986812
+
 
 Build project:
 `nuke --target Compile --configuration Release`
